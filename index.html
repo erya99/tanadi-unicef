@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TANADI · Triple Nexus Anticipatory Action for Niger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --bg-card: #ffffff;
+    --bg-panel: #ebe6db;
+    --ink: #1a1815;
+    --ink-soft: #4a4640;
+    --ink-mute: #8a857c;
+    --rule: #d8d2c4;
+    --rule-strong: #1a1815;
+
+    --dust: #c4a878;
+    --earth: #8b5a3c;
+    --acacia: #5d6b3a;
+
+    --green: #4a7c3a;
+    --green-50: #e8eddc;
+    --yellow: #c89832;
+    --yellow-50: #f4ead0;
+    --red: #b8412a;
+    --red-50: #f0d9d1;
+    --critical: #7a1810;
+
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ====== TOP BAR ====== */
+  .topbar {
+    border-bottom: 1px solid var(--rule-strong);
+    background: var(--bg);
+    padding: 14px 24px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .brand-mark {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .brand-mark::before {
+    content: "◐";
+    color: var(--red);
+    margin-right: 8px;
+    font-size: 18px;
+  }
+  .brand-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-mute);
+  }
+  .topbar-meta {
+    display: flex;
+    gap: 24px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .topbar-meta span b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 1.4s ease-in-out infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  .topbar-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    padding: 7px 14px;
+    border: 1px solid var(--rule-strong);
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .btn-primary:hover {
+    background: var(--red);
+    border-color: var(--red);
+  }
+
+  /* ====== MAIN GRID ====== */
+  .main {
+    display: grid;
+    grid-template-columns: 320px 1fr 380px;
+    height: calc(100vh - 56px);
+    overflow: hidden;
+  }
+
+  /* ====== LEFT PANEL ====== */
+  .left-panel {
+    border-right: 1px solid var(--rule);
+    background: var(--bg-panel);
+    overflow-y: auto;
+    padding: 20px 18px;
+  }
+  .panel-title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 19px;
+    line-height: 1.15;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .panel-subtitle {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    margin-bottom: 18px;
+  }
+  .layer-toggle {
+    border: 1px solid var(--rule);
+    background: var(--bg-card);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .layer-toggle.active {
+    border-color: var(--ink);
+    border-left-width: 3px;
+    padding-left: 12px;
+  }
+  .layer-toggle:hover {
+    border-color: var(--ink-soft);
+  }
+  .layer-toggle-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .layer-name {
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .layer-switch {
+    width: 28px;
+    height: 14px;
+    background: var(--rule);
+    border-radius: 7px;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .layer-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.15s;
+  }
+  .layer-toggle.active .layer-switch {
+    background: var(--red);
+  }
+  .layer-toggle.active .layer-switch::after {
+    left: 16px;
+  }
+  .layer-desc {
+    font-size: 11px;
+    color: var(--ink-mute);
+    line-height: 1.4;
+  }
+  .layer-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+  }
+  .layer-stat b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .section-rule {
+    height: 1px;
+    background: var(--rule);
+    margin: 22px 0 18px;
+  }
+
+  .timemachine {
+    border: 1px solid var(--rule-strong);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 16px 14px;
+    margin-top: 8px;
+  }
+  .timemachine h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: var(--bg);
+  }
+  .timemachine p {
+    font-size: 11px;
+    color: #b8b2a6;
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  .tm-controls {
+    display: flex;
+    gap: 6px;
+  }
+  .tm-btn {
+    flex: 1;
+    padding: 8px 4px;
+    background: transparent;
+    border: 1px solid #524d44;
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .tm-btn:hover { background: #2a2620; }
+  .tm-btn.playing {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .tm-progress {
+    height: 3px;
+    background: #2a2620;
+    margin-top: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tm-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: var(--red);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .tm-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--bg);
+    margin-top: 10px;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  /* ====== FORECAST STRIP (IPC/CH 5-phase) ====== */
+  .forecast-strip {
+    border: 1px solid var(--rule);
+    background: var(--bg-card);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .fc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .fc-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .fc-meta {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-mute);
+  }
+  .fc-scale {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+  .fc-step {
+    height: 10px;
+    background: var(--rule);
+    transition: all 0.2s;
+    position: relative;
+  }
+  .fc-step.active-now {
+    background: var(--ink);
+  }
+  .fc-step.active-now::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 4px solid var(--ink);
+  }
+  .fc-step.forecast {
+    background: transparent;
+    border: 1.5px dashed var(--ink);
+  }
+  .fc-step[data-phase="1"].colored { background: #4a7c3a; }
+  .fc-step[data-phase="2"].colored { background: #c89832; }
+  .fc-step[data-phase="3"].colored { background: #d97326; }
+  .fc-step[data-phase="4"].colored { background: #b8412a; }
+  .fc-step[data-phase="5"].colored { background: #7a1810; }
+  .fc-labels {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    margin-bottom: 10px;
+  }
+  .fc-labels span {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    text-align: center;
+  }
+  .fc-current {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--rule);
+  }
+  .fc-current b { color: var(--ink); font-weight: 600; }
+  .fc-drivers {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 8px;
+  }
+  .fc-driver {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+    line-height: 1.35;
+    padding-left: 10px;
+    position: relative;
+  }
+  .fc-driver::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--red);
+  }
+  .fc-source {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+  }
+
+  /* ====== CENTER (MAP) ====== */
+  .map-container {
+    position: relative;
+    background: var(--bg-panel);
+  }
+  #map {
+    height: 100%;
+    background: #2a2620;
+  }
+  .leaflet-container { font-family: var(--font-body); background: #2a2620; }
+  .leaflet-tile-pane { filter: saturate(0.92) contrast(1.02); }
+
+  .map-overlay-tl {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--ink);
+    padding: 12px 14px;
+    z-index: 500;
+    min-width: 220px;
+  }
+  .map-overlay-tl .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    margin-bottom: 2px;
+  }
+  .map-overlay-tl .value {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .map-overlay-tl .sub {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .map-overlay-br {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    padding: 10px 14px;
+    z-index: 500;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+
+  .legend {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    padding: 12px 14px;
+    z-index: 500;
+    min-width: 200px;
+  }
+  .legend-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    margin-bottom: 8px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid white;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+  }
+
+  /* ====== RIGHT PANEL ====== */
+  .right-panel {
+    border-left: 1px solid var(--rule);
+    background: var(--bg-card);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .right-section {
+    border-bottom: 1px solid var(--rule);
+    padding: 18px 20px;
+  }
+  .right-section h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 17px;
+    margin-bottom: 2px;
+    letter-spacing: -0.01em;
+  }
+  .right-section .section-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    margin-bottom: 14px;
+  }
+
+  /* ====== TNVS SCORE PANEL ====== */
+  .tnvs-display {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .tnvs-circle {
+    width: 90px;
+    height: 90px;
+    position: relative;
+  }
+  .tnvs-circle svg {
+    transform: rotate(-90deg);
+  }
+  .tnvs-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
+  .tnvs-info .village-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-bottom: 2px;
+  }
+  .tnvs-info .village-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-mute);
+    margin-bottom: 8px;
+  }
+  .tnvs-status {
+    display: inline-block;
+    padding: 3px 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+  }
+  .tnvs-status.crit {
+    background: var(--critical);
+    color: white;
+  }
+  .tnvs-status.high {
+    background: var(--red);
+    color: white;
+  }
+  .tnvs-status.med {
+    background: var(--yellow);
+    color: var(--ink);
+  }
+  .tnvs-status.low {
+    background: var(--green);
+    color: white;
+  }
+
+  .tnvs-breakdown {
+    display: grid;
+    gap: 6px;
+  }
+  .tnvs-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 36px;
+    gap: 10px;
+    align-items: center;
+    font-size: 11px;
+  }
+  .tnvs-row .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+  .tnvs-bar {
+    height: 6px;
+    background: var(--rule);
+    position: relative;
+  }
+  .tnvs-bar-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    transition: width 0.4s ease, background 0.4s;
+  }
+  .tnvs-row .val {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* ====== ALERT FEED ====== */
+  .alert-feed {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .alert {
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--rule);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    animation: alertSlide 0.4s ease;
+  }
+  @keyframes alertSlide {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .alert:last-child { border-bottom: none; }
+  .alert-tag {
+    padding: 2px 6px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    height: fit-content;
+    font-weight: 600;
+  }
+  .alert-tag.sat { background: var(--green-50); color: var(--green); }
+  .alert-tag.mkt { background: var(--yellow-50); color: #8a6a1d; }
+  .alert-tag.ussd { background: var(--red-50); color: var(--red); }
+  .alert-tag.crit { background: var(--critical); color: white; }
+  .alert-body { font-size: 12px; line-height: 1.4; }
+  .alert-body b { font-weight: 600; }
+  .alert-time {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-mute);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ====== USSD SIMULATOR ====== */
+  .ussd-section { padding: 18px 20px; }
+  .phone {
+    background: #1a1815;
+    border: 1px solid #1a1815;
+    padding: 14px 12px;
+    color: #9be39b;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    min-height: 200px;
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .phone::before {
+    content: 'ORANGE NIGER · *384#';
+    position: absolute;
+    top: -7px;
+    left: 12px;
+    background: var(--bg-card);
+    padding: 0 6px;
+    font-size: 9px;
+    color: var(--ink-mute);
+    letter-spacing: 0.1em;
+    font-family: var(--font-mono);
+  }
+  .phone-line {
+    margin-bottom: 4px;
+    word-wrap: break-word;
+  }
+  .phone-line.dim { opacity: 0.55; }
+  .phone-line.input {
+    color: #ffd966;
+  }
+  .phone-line.input::before { content: '> '; }
+  .phone-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: #9be39b;
+    vertical-align: middle;
+    animation: blink 1s steps(2) infinite;
+    margin-left: 2px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .phone-keys {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .key {
+    padding: 8px;
+    background: var(--bg-panel);
+    border: 1px solid var(--rule);
+    text-align: center;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.1s;
+  }
+  .key:hover { background: var(--ink); color: var(--bg); }
+  .key:active { transform: scale(0.95); }
+  .key.send { background: var(--green); color: white; border-color: var(--green); }
+  .key.end { background: var(--red); color: white; border-color: var(--red); }
+  .key.reset { background: var(--rule); }
+
+  .ussd-meta {
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    justify-content: space-between;
+  }
+  .ussd-meta b { color: var(--ink); }
+  .ussd-note {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-left: 2px solid var(--ink);
+    background: var(--bg-panel);
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .ussd-note b { color: var(--ink); font-weight: 600; }
+
+  /* ====== CUSTOM MARKERS ====== */
+  .village-marker {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2.5px solid var(--bg-card);
+    box-shadow: 0 0 0 1px var(--ink), 0 2px 6px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: transform 0.2s;
+    position: relative;
+  }
+  .village-marker:hover { transform: scale(1.2); z-index: 1000; }
+  .village-marker.selected {
+    box-shadow: 0 0 0 3px var(--ink), 0 0 0 6px rgba(184,65,42,0.3);
+  }
+  .village-marker.critical {
+    animation: criticalPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes criticalPulse {
+    0%, 100% { box-shadow: 0 0 0 1px var(--ink), 0 0 0 0 rgba(184,65,42,0.7); }
+    50% { box-shadow: 0 0 0 1px var(--ink), 0 0 0 10px rgba(184,65,42,0); }
+  }
+
+  /* ====== TRENDS ====== */
+  .trend {
+    margin-top: 10px;
+    height: 50px;
+    position: relative;
+  }
+  .trend svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .trend-label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ====== INTRO PANEL ====== */
+  .intro {
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    margin-bottom: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .intro b { color: var(--ink); font-weight: 600; }
+
+  /* ====== SCROLLBAR ====== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--rule); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-mute); }
+
+  /* ====== POPUP STYLE ====== */
+  .leaflet-popup-content-wrapper {
+    border-radius: 0;
+    border: 1px solid var(--ink);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .leaflet-popup-content {
+    margin: 12px 14px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .leaflet-popup-content b { font-weight: 600; }
+  .leaflet-popup-tip { background: var(--ink); }
+
+  @media (max-width: 1100px) {
+    .main { grid-template-columns: 1fr; height: auto; }
+    .left-panel, .right-panel { border: none; border-bottom: 1px solid var(--rule); max-height: 500px; }
+    #map { height: 500px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">TANADI</span>
+    <span class="brand-sub">Niger · Maradi Region · v0.1</span>
+  </div>
+  <div class="topbar-meta">
+    <span><span class="live-dot"></span> Live feed</span>
+    <span>Children at risk: <b id="topChildren">10,247</b></span>
+    <span>Villages monitored: <b>32</b></span>
+    <span id="topDate">17 May 2026</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn" onclick="alert('Demo build. Real export available in pilot.')">Export report</button>
+    <button class="btn btn-primary" onclick="document.querySelector('.right-section').scrollIntoView({behavior:'smooth'})">View alerts</button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ============ LEFT PANEL ============ -->
+  <aside class="left-panel">
+    <div class="intro">
+      Real-time anticipatory action platform fusing <b>satellite</b>, <b>market</b>, and <b>community USSD</b> signals to detect child nutrition crises 60+ days in advance.
+    </div>
+
+    <div class="panel-title">Data layers</div>
+    <div class="panel-subtitle">Triple Nexus signals</div>
+
+    <div class="layer-toggle active" data-layer="satellite" onclick="toggleLayer(this)">
+      <div class="layer-toggle-head">
+        <span class="layer-name">◇ Satellite vegetation</span>
+        <span class="layer-switch"></span>
+      </div>
+      <div class="layer-desc">Sentinel-2 NDVI anomaly vs. 10-year baseline. CHIRPS rainfall deficit.</div>
+      <div class="layer-stat">
+        <span>NDVI anomaly</span>
+        <span><b>−34%</b> vs baseline</span>
+      </div>
+    </div>
+
+    <div class="layer-toggle active" data-layer="market" onclick="toggleLayer(this)">
+      <div class="layer-toggle-head">
+        <span class="layer-name">◇ Market access</span>
+        <span class="layer-switch"></span>
+      </div>
+      <div class="layer-desc">WFP VAM millet prices + crowdsourced USSD reports. Food Access Index.</div>
+      <div class="layer-stat">
+        <span>Millet (CFA/kg)</span>
+        <span><b>520</b> · +47% YoY</span>
+      </div>
+    </div>
+
+    <div class="layer-toggle active" data-layer="ussd" onclick="toggleLayer(this)">
+      <div class="layer-toggle-head">
+        <span class="layer-name">◇ Family MUAC++</span>
+        <span class="layer-switch"></span>
+      </div>
+      <div class="layer-desc">USSD reports from caregivers. Color-coded malnutrition status weekly.</div>
+      <div class="layer-stat">
+        <span>Reports this week</span>
+        <span><b>4,182</b> · 18% red</span>
+      </div>
+    </div>
+
+    <div class="section-rule"></div>
+
+    <div class="timemachine">
+      <h3>Time machine</h3>
+      <p>Replay the 2022 Sahel food crisis. Watch how TANADI would have flagged Maradi 11 weeks before the official WFP alert.</p>
+      <div class="tm-controls">
+        <button class="tm-btn" id="tmPlay" onclick="playTimeMachine()">▶ Play 2022</button>
+        <button class="tm-btn" onclick="resetTimeMachine()">Reset</button>
+      </div>
+      <div class="tm-progress"><div class="tm-progress-fill" id="tmFill"></div></div>
+      <div class="tm-date" id="tmDate">JAN · 2022</div>
+    </div>
+
+    <div class="section-rule"></div>
+
+    <div class="panel-title">Regional forecast</div>
+    <div class="panel-subtitle">Cadre Harmonisé · 90-day outlook</div>
+
+    <div class="forecast-strip" id="climateForecast">
+      <div class="fc-head">
+        <span class="fc-name">Climate &amp; crops</span>
+        <span class="fc-meta">Niger · Maradi</span>
+      </div>
+      <div class="fc-scale">
+        <div class="fc-step" data-phase="1" title="Minimal"></div>
+        <div class="fc-step" data-phase="2" title="Stressed"></div>
+        <div class="fc-step" data-phase="3" title="Crisis"></div>
+        <div class="fc-step" data-phase="4" title="Emergency"></div>
+        <div class="fc-step" data-phase="5" title="Catastrophe"></div>
+      </div>
+      <div class="fc-labels">
+        <span>Min</span>
+        <span>Stress</span>
+        <span>Crisis</span>
+        <span>Emerg</span>
+        <span>Cata</span>
+      </div>
+      <div class="fc-current" id="climateCurrent">
+        Now: <b>Crisis</b> → 90d: <b>Emergency</b>
+      </div>
+      <div class="fc-drivers" id="climateDrivers"></div>
+      <div class="fc-source">
+        Source: Sentinel-2 · CHIRPS · MODIS LST
+      </div>
+    </div>
+
+    <div class="forecast-strip" id="marketForecast">
+      <div class="fc-head">
+        <span class="fc-name">Market &amp; food access</span>
+        <span class="fc-meta">Maradi markets</span>
+      </div>
+      <div class="fc-scale">
+        <div class="fc-step" data-phase="1"></div>
+        <div class="fc-step" data-phase="2"></div>
+        <div class="fc-step" data-phase="3"></div>
+        <div class="fc-step" data-phase="4"></div>
+        <div class="fc-step" data-phase="5"></div>
+      </div>
+      <div class="fc-labels">
+        <span>Min</span>
+        <span>Stress</span>
+        <span>Crisis</span>
+        <span>Emerg</span>
+        <span>Cata</span>
+      </div>
+      <div class="fc-current" id="marketCurrent">
+        Now: <b>Crisis</b> → 90d: <b>Emergency</b>
+      </div>
+      <div class="fc-drivers" id="marketDrivers"></div>
+      <div class="fc-source">
+        Source: WFP VAM · FAO FPMA · USSD reports
+      </div>
+    </div>
+
+    <div class="section-rule"></div>
+
+    <div class="panel-title">Why three streams</div>
+    <div class="panel-subtitle">The TANADI insight</div>
+    <p style="font-size: 12px; color: var(--ink-soft); line-height: 1.55;">
+      Existing systems detect food crises <b style="color:var(--ink)">6–8 weeks too late</b>. TANADI fuses climate, market, and household USSD signals so convergence is detected the moment it happens — not at the next quarterly survey.
+    </p>
+  </aside>
+
+  <!-- ============ MAP ============ -->
+  <section class="map-container">
+    <div id="map"></div>
+
+    <div class="map-overlay-tl">
+      <div class="label">Aggregate risk · Maradi</div>
+      <div class="value" id="aggregateRisk">High</div>
+      <div class="sub" id="aggregateSub">12 villages in red zone</div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-title">TNVS · Vulnerability score</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--green)"></span> Low (0–25)</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--yellow)"></span> Medium (26–50)</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--red)"></span> High (51–75)</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--critical)"></span> Critical (76+)</div>
+    </div>
+
+    <div class="map-overlay-br">
+      Click a village →
+    </div>
+  </section>
+
+  <!-- ============ RIGHT PANEL ============ -->
+  <aside class="right-panel">
+
+    <div class="right-section">
+      <h2 id="rsVillage">Dan Issa</h2>
+      <div class="section-sub" id="rsCoords">Maradi · 13.36°N, 7.32°E</div>
+
+      <div class="tnvs-display">
+        <div class="tnvs-circle">
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="var(--rule)" stroke-width="6"/>
+            <circle id="tnvsRing" cx="45" cy="45" r="38" fill="none" stroke="var(--red)" stroke-width="6"
+              stroke-dasharray="238.76" stroke-dashoffset="50" stroke-linecap="round"/>
+          </svg>
+          <div class="tnvs-num" id="tnvsNum">79</div>
+        </div>
+        <div class="tnvs-info">
+          <div class="village-name">Triple Nexus Score</div>
+          <div class="village-meta">Updated 14 min ago</div>
+          <span class="tnvs-status crit" id="tnvsStatus">Critical</span>
+        </div>
+      </div>
+
+      <div class="tnvs-breakdown">
+        <div class="tnvs-row">
+          <span class="label">Climate</span>
+          <div class="tnvs-bar"><div class="tnvs-bar-fill" id="barSat" style="width:84%;background:var(--red)"></div></div>
+          <span class="val" id="valSat">84</span>
+        </div>
+        <div class="tnvs-row">
+          <span class="label">Market</span>
+          <div class="tnvs-bar"><div class="tnvs-bar-fill" id="barMkt" style="width:72%;background:var(--yellow)"></div></div>
+          <span class="val" id="valMkt">72</span>
+        </div>
+        <div class="tnvs-row">
+          <span class="label">Nutrition</span>
+          <div class="tnvs-bar"><div class="tnvs-bar-fill" id="barUssd" style="width:81%;background:var(--red)"></div></div>
+          <span class="val" id="valUssd">81</span>
+        </div>
+      </div>
+
+      <div class="trend">
+        <span class="trend-label">12-week trend</span>
+        <svg id="trendSvg" viewBox="0 0 280 50" preserveAspectRatio="none">
+          <path id="trendPath" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linejoin="round"/>
+          <path id="trendArea" fill="var(--red)" opacity="0.08"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <h2>Live alert feed</h2>
+      <div class="section-sub" id="alertCount">14 active alerts · last 24h</div>
+      <div class="alert-feed" id="alertFeed">
+        <!-- alerts injected by JS -->
+      </div>
+    </div>
+
+    <div class="ussd-section">
+      <h2 style="font-family:var(--font-display); font-weight:500; font-size:17px; margin-bottom:2px; letter-spacing:-0.01em;">USSD simulator</h2>
+      <div class="section-sub" style="font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-mute); margin-bottom:14px;">Family MUAC++ flow · Hausa/French</div>
+
+      <div class="phone" id="phoneScreen">
+        <!-- screen content injected -->
+      </div>
+
+      <div class="phone-keys" id="phoneKeys">
+        <div class="key" onclick="ussdKey('1')">1</div>
+        <div class="key" onclick="ussdKey('2')">2</div>
+        <div class="key" onclick="ussdKey('3')">3</div>
+        <div class="key" onclick="ussdKey('4')">4</div>
+        <div class="key" onclick="ussdKey('5')">5</div>
+        <div class="key" onclick="ussdKey('6')">6</div>
+        <div class="key reset" onclick="ussdKey('*')">*</div>
+        <div class="key" onclick="ussdKey('0')">0</div>
+        <div class="key reset" onclick="ussdKey('#')">#</div>
+        <div class="key end" onclick="ussdEnd()">End</div>
+        <div class="key" onclick="ussdKey('back')">Back</div>
+        <div class="key send" onclick="ussdSend()">Send</div>
+      </div>
+
+      <div class="ussd-meta">
+        <span>Session: <b id="ussdSession">00:42</b></span>
+        <span>Cost: <b>0 CFA</b></span>
+        <span>Network: <b>2G</b></span>
+      </div>
+      <div class="ussd-note">
+        <b>Location:</b> resolved via Cell-ID through operator partnership (Orange/Airtel). No GPS required — works on basic feature phones.
+      </div>
+    </div>
+
+  </aside>
+
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# Earth Engine credentials
+.config/earthengine/
+*.pem
+*.json
+!package.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Local data caches
+data/cache/
+*.parquet
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.local
